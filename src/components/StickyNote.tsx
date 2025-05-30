@@ -57,14 +57,29 @@ const StickyNote: React.FC = () => {
     };
   }, [dragging, position]);
 
+  // Mobile drag workaround: always show sticky note at bottom center on small screens
+  const isMobile = window.innerWidth <= 600;
+  const mobileStyle = isMobile
+    ? {
+        left: '50%',
+        bottom: 24,
+        top: 'unset',
+        transform: 'translateX(-50%)',
+        right: 'unset',
+      }
+    : {
+        top: position.y || 24,
+        left: position.x || undefined,
+        right: undefined,
+        bottom: undefined,
+        transform: 'none',
+      };
+
   return (
     <div
       ref={noteRef}
       style={{
         position: 'fixed',
-        top: position.y || 24,
-        right: undefined,
-        left: position.x || undefined,
         background: '#fffbe7',
         border: '1px solid #e2c275',
         borderRadius: 8,
@@ -72,13 +87,14 @@ const StickyNote: React.FC = () => {
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         maxWidth: 300,
         zIndex: 100,
-        cursor: dragging ? 'grabbing' : 'grab',
+        cursor: isMobile ? 'default' : dragging ? 'grabbing' : 'grab',
         userSelect: 'none',
+        ...mobileStyle,
       }}
     >
       <div
-        style={{ cursor: 'grab', marginBottom: 8, color: '#b59b3a', fontWeight: 'bold' }}
-        onMouseDown={handleMouseDown}
+        style={{ cursor: isMobile ? 'default' : 'grab', marginBottom: 8, color: '#b59b3a', fontWeight: 'bold' }}
+        onMouseDown={isMobile ? undefined : handleMouseDown}
       >
         Sticky Note
       </div>
