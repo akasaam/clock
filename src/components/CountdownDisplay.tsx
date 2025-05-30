@@ -11,46 +11,83 @@ const CountdownDisplay: React.FC = () => {
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const intervalRef = useRef<number | null>(null);
-  
+  const endTimeRef = useRef<number | null>(null);
+
   // Setup timer values on initial load and when countdownDuration changes
   useEffect(() => {
     const totalSeconds = countdownDuration;
     const calculatedHours = Math.floor(totalSeconds / 3600);
     const calculatedMinutes = Math.floor((totalSeconds % 3600) / 60);
     const calculatedSeconds = totalSeconds % 60;
-    
     setHours(calculatedHours);
     setMinutes(calculatedMinutes);
     setSeconds(calculatedSeconds);
     setRemainingTime(totalSeconds);
+    endTimeRef.current = null;
   }, [countdownDuration]);
-  
+
+  // Robust timer logic using timestamps
   useEffect(() => {
+    if (isRunning) {
+      if (!endTimeRef.current) {
+        endTimeRef.current = Date.now() + remainingTime * 1000;
+      }
+      intervalRef.current = window.setInterval(() => {
+        const left = Math.max(0, Math.round((endTimeRef.current! - Date.now()) / 1000));
+        setRemainingTime(left);
+        if (left <= 0) {
+          clearInterval(intervalRef.current!);
+          setIsRunning(false);
+          endTimeRef.current = null;
+        }
+      }, 250);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      endTimeRef.current = null;
+    }
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
-  }, []);
-  
+  }, [isRunning]);
+
+  // Handle tab visibility change
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isRunning && endTimeRef.current) {
+        const left = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+        setRemainingTime(left);
+        if (left <= 0) {
+          setIsRunning(false);
+          endTimeRef.current = null;
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [isRunning]);
+
   const startCountdown = () => {
     if (!isRunning && remainingTime > 0) {
       setIsRunning(true);
+      endTimeRef.current = Date.now() + remainingTime * 1000;
       intervalRef.current = window.setInterval(() => {
-        setRemainingTime((prevTime) => {
-          if (prevTime <= 1) {
-            clearInterval(intervalRef.current!);
-            setIsRunning(false);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
+        const left = Math.max(0, Math.round((endTimeRef.current! - Date.now()) / 1000));
+        setRemainingTime(left);
+        if (left <= 0) {
+          clearInterval(intervalRef.current!);
+          setIsRunning(false);
+          endTimeRef.current = null;
+        }
+      }, 250);
     } else {
       pauseCountdown();
     }
   };
-  
+
   const pauseCountdown = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -58,35 +95,35 @@ const CountdownDisplay: React.FC = () => {
     }
     setIsRunning(false);
   };
-  
+
   const resetCountdown = () => {
     pauseCountdown();
     setRemainingTime(countdownDuration);
   };
-  
+
   const saveCountdownSettings = () => {
     const newDuration = hours * 3600 + minutes * 60 + seconds;
     setCountdownDuration(newDuration);
     setRemainingTime(newDuration);
     setIsEditing(false);
   };
-  
+
   const handleCountdownClick = () => {
     if (!isExpanded) {
       setIsExpanded(true);
     }
   };
-  
+
   // Format remaining time for display
   const displayHours = Math.floor(remainingTime / 3600);
   const displayMinutes = Math.floor((remainingTime % 3600) / 60);
   const displaySeconds = remainingTime % 60;
-  
+
   // Calculate progress percentage
   const progress = countdownDuration > 0 
     ? ((countdownDuration - remainingTime) / countdownDuration) * 100 
     : 0;
-  
+
   return (
     <div 
       className={`

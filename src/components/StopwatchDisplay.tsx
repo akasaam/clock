@@ -20,28 +20,52 @@ const StopwatchDisplay: React.FC = () => {
   );
   const { isExpanded, setIsExpanded } = useTimerApp();
   const intervalRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const startTimeRef = useRef<number | null>(null);
 
+  // Save state to cache
   useEffect(() => {
     saveToCache(CACHE_KEYS.STOPWATCH_STATE, state);
   }, [state]);
 
+  // Robust timer logic using timestamps
   useEffect(() => {
     if (state.isRunning) {
-      startTimeRef.current = Date.now() - state.elapsedTime;
+      // If starting, set startTimeRef based on elapsedTime
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now() - state.elapsedTime;
+      }
       intervalRef.current = window.setInterval(() => {
         setState(prev => ({
           ...prev,
-          elapsedTime: Date.now() - startTimeRef.current
+          elapsedTime: Date.now() - (startTimeRef.current || Date.now())
         }));
       }, 10);
+    } else {
+      // When stopped, clear interval and reset startTimeRef
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      startTimeRef.current = null;
     }
-
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
+  }, [state.isRunning]);
+
+  // Handle tab visibility change
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && state.isRunning && startTimeRef.current) {
+        setState(prev => ({
+          ...prev,
+          elapsedTime: Date.now() - (startTimeRef.current || Date.now())
+        }));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [state.isRunning]);
 
   const startStopwatch = () => {
