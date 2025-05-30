@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #f97316;
+  --color-primary-light: #fdba74;
+  --color-primary-dark: #c2410c;
+  --color-text: #0f172a;
+  --color-text-light: #ffffff;
+  --font-family: 'Outfit', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+}
+
+/* Hide scrollbars everywhere by default */
+body, html, * {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+body::-webkit-scrollbar, *::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Show scrollbars only on the home (clock) screen if needed */
+.home-mode body, .home-mode * {
+  scrollbar-width: auto !important;
+  -ms-overflow-style: auto !important;
+}
+.home-mode body::-webkit-scrollbar, .home-mode *::-webkit-scrollbar {
+  display: initial !important;
+}
+
+body {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .transition-smooth {
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
