@@ -5,6 +5,7 @@ import StopwatchDisplay from '../components/StopwatchDisplay';
 import CountdownDisplay from '../components/CountdownDisplay';
 import ModeSwitcher from '../components/ModeSwitcher';
 import Footer from '../components/Footer';
+import StickyNote from '../components/StickyNote';
 import { useTimerApp } from '../contexts/TimerAppContext';
 
 const TimerView: React.FC = () => {
@@ -14,6 +15,11 @@ const TimerView: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       
+      {/* Sticky Note (top right corner) */}
+      <div style={{ position: 'fixed', top: 24, right: 24 }}>
+        <StickyNote />
+      </div>
+
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Main Content Area */}
         <div className={`
